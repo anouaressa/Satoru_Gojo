@@ -1,0 +1,78 @@
+
+pipeline{
+    agent any
+    tools{
+       
+        nodejs 'node16'
+    }
+    environment {
+        SCANNER_HOME=tool 'sonar-scanner'
+    }
+    stages {
+        stage('clean workspace'){
+            steps{
+                cleanWs()
+            }
+        }
+        stage('Checkout from Git'){
+            steps{
+                git branch: 'main', url: 'https://github.com/anouaressa/Satoru_Gojo.git'
+            }
+        }
+        stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                    -Dsonar.projectKey=Netflix '''
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh "npm install"
+            }
+        }
+        stage('OWASP FS SCAN') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
+        
+ 
+        stage("Build Docker Image") {
+                 steps {
+                     script {
+                      
+                        sh "docker build --build-arg TMDB_V3_API_KEY=08dd33178bc0a440e134247b44c05a20 -t anouaress/demo01:latest ." 
+                     }
+                 }
+        }    
+        
+          stage("Push Docker Image") {
+                 steps {
+                     script {
+                       withDockerRegistry(credentialsId: '422485c9-95dc-41ee-a146-af03ef0f4478') {
+                            sh "docker push anouaress/demo01:latest"
+                         }
+                     }
+                 }
+        } 
+        stage("TRIVY"){
+            steps{
+                sh "trivy image anouaress/demo01:latest > trivyimage.txt" 
+            }
+        }
+        stage('Deploy to container'){
+            steps{
+                sh 'docker run -d --name mynetflix -p 8081:80 anouaress/demo01:latest'
+            }
+        }
+    }
+}
