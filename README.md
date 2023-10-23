@@ -28,7 +28,7 @@ docker build --build-arg TMDB_V3_API_KEY=<your-api-key> -t luffy .
 **Phase 2: Security**
 
 1. **Install SonarQube and Trivy:**
-    - Install SonarQube and Trivy on the EC2 instance to scan for vulnerabilities.
+    - Install SonarQube and Trivy for scan for vulnerabilities.
         
         sonarqube
         ```
