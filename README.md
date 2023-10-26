@@ -108,12 +108,13 @@ docker build --build-arg TMDB_V3_API_KEY=<your-api-key> -t luffy .
   - Enter your DockerHub credentials (Username and Password) and give the credentials an ID (e.g., "docker").
   - Click "OK" to save your DockerHub credentials.
 
-
-If you get docker login failed errorr
+# If you get docker login failed errorr
 
 sudo su
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
+
+
         
 2. **Install Plugins in Jenkins:**
 
